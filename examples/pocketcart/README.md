@@ -44,7 +44,7 @@ cd examples/pocketcart/candidates/modular && ../../../../.venv/bin/python -m pyt
 
 ## Git refs
 
-The repository has no commits yet, so the `coupled` and `modular` refs do not exist. After the first commit, `scripts/create_candidate_refs.sh` creates them as parentless commits (Git plumbing; it does not touch the working tree, index, or HEAD, and refuses to overwrite). `check_equivalence.py --refs <repo>` then verifies the refs instead of the directories.
+`scripts/create_candidate_refs.sh` creates the local branches `coupled` and `modular` as parentless commits whose trees are exactly `candidates/coupled` and `candidates/modular` (Git plumbing; it does not touch the working tree, index, or HEAD, and refuses to overwrite). `python examples/pocketcart/equivalence/check_equivalence.py --refs .` verifies the refs instead of the directories. The refs are snapshots: if a candidate directory changes, delete the ref deliberately and recreate it.
 
 ## Provenance
 

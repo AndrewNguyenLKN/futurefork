@@ -62,7 +62,7 @@ The MVP does not predict real future requirements, prove maintainability, or aut
 
 ## Current state
 
-Planning and research are documented. P0.1 (scenario contracts) is complete. P0.2 (PocketCart candidates) is implemented and verified from directories; the `coupled`/`modular` Git refs are pending the user's first commit (see `BACKLOG.md`). Claude Code wrote both; no Bob task is associated with them (D012). The protected test packs for all three scenarios are authored and hash-frozen (`docs/PROTECTED_TESTS.md`); they fail on the unchanged candidates as intended, but no implementation has yet been shown to satisfy them.
+Planning and research are documented. P0.1 (scenario contracts) is complete. P0.2 (PocketCart candidates) is complete: baseline commit `0d8b6c2` exists on `main` and the local parentless refs `coupled` and `modular` are created and verified (see `BACKLOG.md`). Nothing is pushed. Claude Code wrote both; no Bob task is associated with them (D012). The protected test packs for all three scenarios are authored and hash-frozen (`docs/PROTECTED_TESTS.md`); they fail on the unchanged candidates as intended, but no implementation has yet been shown to satisfy them.
 
 Verified on 26 September 2026:
 
@@ -75,7 +75,7 @@ Verified on 26 September 2026:
 
 ## Claude Code handoff
 
-Phase A is complete except creating the candidate Git refs (needs the user's first commit). The next step is **P0.3**, which is a Bob IDE task run by the user: open Bob IDE on an isolated worktree of one candidate (never the repository root, which contains the protected packs), have Bob implement `partial-refund`, then mount the verified pack and run it.
+Phase A is complete. The next step is **P0.3**, which is a Bob IDE task run by the user: open Bob IDE on an isolated worktree of one candidate (never the repository root, which contains the protected packs), have Bob implement `partial-refund`, then mount the verified pack and run it.
 
 Before implementation, briefly state the files you plan to create and any schema decision that is not already settled. Do not redesign the product, rename FutureFork, start the dashboard, or skip ahead to P0.2 unless the user explicitly asks.
 
