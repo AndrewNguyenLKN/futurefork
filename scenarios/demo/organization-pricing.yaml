@@ -1,0 +1,50 @@
+schema_version: 1
+id: organization-pricing
+title: Organization-specific pricing policy
+label: hypothesis   # A hypothetical future requirement, not a prediction.
+requirement: |
+  A cart may belong to an organization with its own discount policy and maximum discount. Existing consumer checkout behavior must not change.
+public_acceptance_criteria:
+  - Consumer carts, orders, and refunds behave and serialize exactly as before.
+  - Two organizations can apply different discount policies and different maximum discounts.
+  - The policy identity is recorded with the order.
+  - An unknown organization fails safely without creating a cart.
+public_interface:
+  endpoints:
+    - method: POST
+      path: /carts
+      summary: Create a cart; body may now include an organization.
+      request:
+        organization_id: "optional string"
+      response:
+        status: 201
+        body: "{cart_id}; unchanged for consumer carts"
+      errors:
+        422: "unknown_organization (no cart is created)"
+  rules:
+    - "Organization registry, fixed for this scenario. org-acme: policy_id acme-standard, 20 percent of the coupon-eligible subtotal, max_discount_cents 1500. org-globex: policy_id globex-volume, 30 percent of the coupon-eligible subtotal, max_discount_cents 500."
+    - "An organization cart receives its automatic discount only: floor((eligible_subtotal * percent + 50) / 100), then capped at max_discount_cents and at the subtotal."
+    - "Adding a coupon to an organization cart returns 422 coupon_not_allowed_for_organization and leaves the cart unchanged."
+    - "Cart and order JSON for organization carts additionally contain organization_id and policy_id. Consumer cart and order JSON must contain no new keys."
+    - "GET /orders/{order_id} returns the recorded organization_id and policy_id."
+    - "Consumer discounts, idempotency, and refund behavior are unchanged."
+tags: [pricing, policy, configuration]
+setup_command: []
+dev_test_command: [python, -m, pytest, -q]
+protected_test_command: [python, -m, pytest, -q, .futurefork-evaluator/organization_pricing]
+protected_tests:
+  source: scenarios/demo/protected-tests/organization-pricing
+  mount: .futurefork-evaluator/organization_pricing
+editable_paths:
+  - src/**
+  - tests/**
+protected_paths:
+  - .futurefork-evaluator/**
+command_allowlist:
+  - [python, -m, pytest]
+  - [git, status]
+  - [git, diff]
+limits:
+  wall_seconds: 600
+  max_attempts: 4
+  max_output_bytes: 1000000

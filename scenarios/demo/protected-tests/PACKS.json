@@ -1,0 +1,32 @@
+{
+  "packs": {
+    "ordered-discounts": {
+      "files": {
+        "conftest.py": "8d7804d32a6bac51cd44bc841ede0d8ad72d5e14cd0326c5671bdb4687826bdf",
+        "oracle_model.py": "6f1304eeca91db5eccd045305a690edbaa9217e88ecf37e287c871bd00ca5383",
+        "support.py": "7dc14a065c11e80fde84db7cb353ca3f46847365b1737405d026aaf8f2e341ca",
+        "test_ordered_discounts.py": "7059d5086ab70d7bba1f0d167037058ec6d162d99f691e495c9a5dc1c4b06ff9"
+      },
+      "pack_sha256": "1d72a1ceab01f7c0372585aa583bf3e14e9cc37aaacad38a8bd2a19860512d60"
+    },
+    "organization-pricing": {
+      "files": {
+        "conftest.py": "8d7804d32a6bac51cd44bc841ede0d8ad72d5e14cd0326c5671bdb4687826bdf",
+        "oracle_model.py": "e6a58ef1caff9ab0bc868dd42013c37d0118c4f8d467f664779ebec021976613",
+        "support.py": "7dc14a065c11e80fde84db7cb353ca3f46847365b1737405d026aaf8f2e341ca",
+        "test_organization_pricing.py": "d5a2ca3cf22c5fca909afc09b51ae38b304d118e79da704d2b11ffa912c01fe3"
+      },
+      "pack_sha256": "30e2d2b05caa4364c06023892807ffe96a2b75221bc2e965b4cf3d53e8b2fd35"
+    },
+    "partial-refund": {
+      "files": {
+        "conftest.py": "8d7804d32a6bac51cd44bc841ede0d8ad72d5e14cd0326c5671bdb4687826bdf",
+        "oracle_model.py": "ab9ee203a272e4cf7edc1d9ccffd6b1739d568ff52c505e5d90c8481dd38b87a",
+        "support.py": "7dc14a065c11e80fde84db7cb353ca3f46847365b1737405d026aaf8f2e341ca",
+        "test_partial_refund.py": "1528ff3fad3096bcac3d8e94363b4b3e9791ecdb6d7487d1d58f05688816af17"
+      },
+      "pack_sha256": "618a9aba91cf9f24e6bde4c8368e46f5256ed4e8a5f56e75435649aa83b33f50"
+    }
+  },
+  "schema_version": 1
+}

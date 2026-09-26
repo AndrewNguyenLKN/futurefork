@@ -1,0 +1,51 @@
+schema_version: 1
+id: ordered-discounts
+title: Ordered discount composition
+label: hypothesis   # A hypothetical future requirement, not a prediction.
+requirement: |
+  Support an automatic organization discount and an optional coupon. The order of application is explicit, both components are recorded, and the combined discount never exceeds the subtotal.
+public_acceptance_criteria:
+  - The configured application order changes the total predictably.
+  - Each discount component is recorded and auditable, and the components sum to the combined discount.
+  - The organization's maximum discount applies to the combined result.
+  - Existing single-coupon behavior remains compatible.
+public_interface:
+  endpoints:
+    - method: POST
+      path: /carts
+      summary: Create a cart; body may now include an organization.
+      request:
+        organization_id: "optional string"
+      response:
+        status: 201
+        body: "{cart_id}"
+      errors:
+        422: "unknown_organization (no cart is created)"
+  rules:
+    - "Organization registry, fixed for this scenario. org-acme: automatic 20 percent, order [organization, coupon], max_discount_cents 3000. org-globex: automatic 15 percent, order [coupon, organization], max_discount_cents 3000. org-initech: automatic 30 percent, order [organization, coupon], max_discount_cents 500."
+    - "Components apply in the organization's configured order. Each applies to the coupon-eligible amount remaining after the earlier component: d_k = floor((base_{k-1} * percent_k + 50) / 100), base_k = base_{k-1} - d_k, with base_0 the eligible subtotal."
+    - "The combined discount is capped at min(max_discount_cents, subtotal). The cap is consumed in application order: each component amount is min(d_k, cap remaining)."
+    - "A cart with no organization has no automatic component; its coupon applies exactly as before."
+    - "Every cart and order JSON gains discounts: a list, in application order, of {source: 'organization'|'coupon', id, amount_cents}. It is empty when nothing applies. The amounts sum to discount_cents. All existing keys and values are unchanged."
+    - "Organization carts additionally contain organization_id in cart and order JSON."
+    - "Refund behavior is unchanged: a full refund returns the captured total."
+tags: [pricing, composition, audit]
+setup_command: []
+dev_test_command: [python, -m, pytest, -q]
+protected_test_command: [python, -m, pytest, -q, .futurefork-evaluator/ordered_discounts]
+protected_tests:
+  source: scenarios/demo/protected-tests/ordered-discounts
+  mount: .futurefork-evaluator/ordered_discounts
+editable_paths:
+  - src/**
+  - tests/**
+protected_paths:
+  - .futurefork-evaluator/**
+command_allowlist:
+  - [python, -m, pytest]
+  - [git, status]
+  - [git, diff]
+limits:
+  wall_seconds: 600
+  max_attempts: 4
+  max_output_bytes: 1000000
