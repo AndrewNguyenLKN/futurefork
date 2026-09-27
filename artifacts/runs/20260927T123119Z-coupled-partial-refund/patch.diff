@@ -1,0 +1,705 @@
+diff --git a/src/pocketcart/checkout.py b/src/pocketcart/checkout.py
+index 0fb4f5a..4ed4fca 100644
+--- a/src/pocketcart/checkout.py
++++ b/src/pocketcart/checkout.py
+@@ -18,7 +18,7 @@ def order_view(store, order_id: str) -> dict:
+         "status": order["status"],
+         "items": [
+             {"sku": sku, "quantity": q, "unit_price_cents": p, "line_total_cents": q * p}
+-            for sku, q, p in store.order_lines(order_id)
++            for sku, q, p, _eligible in store.order_lines(order_id)
+         ],
+         "coupon_id": order["coupon_id"],
+         "subtotal_cents": order["subtotal_cents"],
+@@ -41,13 +41,13 @@ def checkout(store, gateway, cart_id: str, key: str) -> tuple[dict, bool]:
+     if cart["status"] != "open":
+         raise ApiError(409, "cart_closed", f"cart {cart_id} is already checked out")
+     lines = [
+-        (sku, quantity, catalog.PRODUCTS[sku].unit_price_cents)
++        (sku, quantity, catalog.PRODUCTS[sku].unit_price_cents, catalog.PRODUCTS[sku].coupon_eligible)
+         for sku, quantity in store.cart_items(cart_id)
+     ]
+     if not lines:
+         raise ApiError(422, "empty_cart", f"cart {cart_id} has no items")
+ 
+-    subtotal = sum(quantity * price for _, quantity, price in lines)
++    subtotal = sum(quantity * price for _, quantity, price, _elig in lines)
+     discount = discounts.coupon_discount(lines, cart["coupon_id"])
+     total = subtotal - discount
+ 
+diff --git a/src/pocketcart/discounts.py b/src/pocketcart/discounts.py
+index 0c281d5..fcf3a67 100644
+--- a/src/pocketcart/discounts.py
++++ b/src/pocketcart/discounts.py
+@@ -5,20 +5,86 @@ from __future__ import annotations
+ from . import catalog
+ 
+ 
+-def coupon_discount(lines: list[tuple[str, int, int]], coupon_code: str | None) -> int:
++def coupon_discount(lines: list[tuple], coupon_code: str | None) -> int:
+     """Percentage coupon on eligible lines, half-up in cents, never above the subtotal.
+ 
+-    `lines` are (sku, quantity, unit_price_cents).
++    `lines` are (sku, quantity, unit_price_cents) or (sku, quantity, unit_price_cents, coupon_eligible).
++    When coupon_eligible is not provided, it is looked up from the catalog.
+     """
+     coupon = catalog.COUPONS.get(coupon_code) if coupon_code else None
+     if coupon is None:
+         return 0
+     subtotal = 0
+     eligible = 0
+-    for sku, quantity, unit_price in lines:
++    for line in lines:
++        sku, quantity, unit_price = line[0], line[1], line[2]
+         amount = quantity * unit_price
+         subtotal += amount
+-        product = catalog.PRODUCTS.get(sku)
+-        if product is not None and product.coupon_eligible:
++        if len(line) >= 4:
++            is_eligible = line[3]
++        else:
++            product = catalog.PRODUCTS.get(sku)
++            is_eligible = product is not None and product.coupon_eligible
++        if is_eligible:
+             eligible += amount
+     return min((eligible * coupon.percent + 50) // 100, subtotal)
++
++
++def allocate_line_discounts(lines: list[tuple], discount_cents: int) -> list[int]:
++    """Allocate discount_cents across eligible lines using floor + remainder distribution.
++
++    `lines` are (sku, quantity, unit_price_cents, coupon_eligible).
++    Returns a list of per-line discount amounts (cents), same order as lines.
++    Lines that are not coupon_eligible receive 0.
++
++    Rule: Let D = discount_cents, W = sum of line_total_cents over eligible lines.
++    Line i receives floor(D * w_i / W) cents.
++    Remaining cents are given one each to lines by descending (D * w_i mod W),
++    ties broken by ascending line position.
++    """
++    if discount_cents == 0:
++        return [0] * len(lines)
++
++    # Compute W (sum of eligible line totals) and per-line weights
++    eligible_total = 0
++    for line in lines:
++        sku, quantity, unit_price = line[0], line[1], line[2]
++        is_eligible = line[3] if len(line) >= 4 else True
++        if is_eligible:
++            eligible_total += quantity * unit_price
++
++    if eligible_total == 0:
++        return [0] * len(lines)
++
++    D = discount_cents
++    W = eligible_total
++
++    # Floor allocation
++    allocated = []
++    for i, line in enumerate(lines):
++        sku, quantity, unit_price = line[0], line[1], line[2]
++        is_eligible = line[3] if len(line) >= 4 else True
++        if is_eligible:
++            w_i = quantity * unit_price
++            allocated.append(D * w_i // W)
++        else:
++            allocated.append(0)
++
++    # Distribute remainder
++    remainder = D - sum(allocated)
++    if remainder > 0:
++        # Sort eligible indices by descending remainder, ties by ascending position
++        eligible_indices = []
++        for i, line in enumerate(lines):
++            sku, quantity, unit_price = line[0], line[1], line[2]
++            is_eligible = line[3] if len(line) >= 4 else True
++            if is_eligible:
++                w_i = quantity * unit_price
++                mod_val = (D * w_i) % W
++                eligible_indices.append((i, mod_val))
++        eligible_indices.sort(key=lambda x: (-x[1], x[0]))
++        for i in range(remainder):
++            idx = eligible_indices[i][0]
++            allocated[idx] += 1
++
++    return allocated
+diff --git a/src/pocketcart/refunds.py b/src/pocketcart/refunds.py
+index db372e7..e1b5271 100644
+--- a/src/pocketcart/refunds.py
++++ b/src/pocketcart/refunds.py
+@@ -1,4 +1,4 @@
+-"""Full refund: re-derives the refundable amount from the order lines and coupon."""
++"""Refund logic: full refund and partial (item-level) refund."""
+ 
+ from __future__ import annotations
+ 
+@@ -6,16 +6,135 @@ from . import discounts
+ from .errors import ApiError
+ 
+ 
++def _compute_line_refund_amount(unit_price_cents: int, quantity: int, line_discount: int,
++                                 already_refunded: int, refund_qty: int) -> int:
++    """Amount for refunding `refund_qty` units of a line, given `already_refunded` units done before.
++
++    Within a line with quantity q and allocated discount L:
++      discount for units j+1..j+n = floor(L*(j+n)/q) - floor(L*j/q)
++    Amount = n * unit_price_cents - that_discount
++    """
++    j = already_refunded
++    n = refund_qty
++    q = quantity
++    L = line_discount
++    discount_portion = (L * (j + n)) // q - (L * j) // q
++    return n * unit_price_cents - discount_portion
++
++
+ def refund_order(store, order_id: str) -> dict:
++    """Full refund: refunds all units not yet refunded."""
+     order = store.get_order(order_id)
+     if order is None:
+         raise ApiError(404, "order_not_found", f"order {order_id} does not exist")
+     if order["status"] == "refunded":
+         raise ApiError(409, "already_refunded", f"order {order_id} was already refunded")
++
+     lines = store.order_lines(order_id)
+-    subtotal = sum(quantity * price for _, quantity, price in lines)
+-    refundable = subtotal - discounts.coupon_discount(lines, order["coupon_id"])
+-    amount = min(refundable, order["captured_cents"])
++
++    # Build items list for all remaining (unrefunded) units
++    items_request = []
++    for sku, quantity, unit_price, coupon_eligible in lines:
++        already = store.refunded_quantity(order_id, sku)
++        remaining = quantity - already
++        if remaining > 0:
++            items_request.append({"sku": sku, "quantity": remaining})
++
++    if not items_request:
++        # Everything already refunded via partial refunds — order should have been marked refunded
++        raise ApiError(409, "already_refunded", f"order {order_id} was already refunded")
++
++    result = _do_partial_refund(store, order, lines, items_request, mark_fully_refunded=True)
++    # Full refund response shape: no items/remaining_refundable_cents
++    return {
++        "refund_id": result["refund_id"],
++        "order_id": result["order_id"],
++        "status": result["status"],
++        "amount_cents": result["amount_cents"],
++    }
++
++
++def partial_refund(store, order_id: str, items_request: list[dict]) -> dict:
++    """Partial refund: refund specific items."""
++    order = store.get_order(order_id)
++    if order is None:
++        raise ApiError(404, "order_not_found", f"order {order_id} does not exist")
++
++    lines = store.order_lines(order_id)
++    lines_by_sku = {sku: (sku, qty, price, eligible) for sku, qty, price, eligible in lines}
++
++    # Validate items_request
++    if not items_request:
++        raise ApiError(422, "invalid_refund_items", "items list must not be empty")
++
++    seen_skus = set()
++    for item in items_request:
++        sku = item.get("sku")
++        qty = item.get("quantity")
++        if sku is None or qty is None or qty < 1:
++            raise ApiError(422, "invalid_refund_items", "each item must have sku and quantity >= 1")
++        if sku not in lines_by_sku:
++            raise ApiError(422, "invalid_refund_items", f"sku {sku} is not in this order")
++        if sku in seen_skus:
++            raise ApiError(422, "invalid_refund_items", f"sku {sku} appears more than once in request")
++        seen_skus.add(sku)
++        # Check quantity availability
++        _, line_qty, _, _ = lines_by_sku[sku]
++        already = store.refunded_quantity(order_id, sku)
++        if already + qty > line_qty:
++            raise ApiError(409, "refund_exceeds_order",
++                           f"sku {sku}: requested {qty} but only {line_qty - already} units remain refundable")
++
++    # Check if all remaining units are being refunded (to mark as fully refunded)
++    total_remaining = sum(qty - store.refunded_quantity(order_id, sku) for sku, qty, _, _ in lines)
++    request_total = sum(item["quantity"] for item in items_request)
++    mark_fully_refunded = (request_total == total_remaining)
++
++    return _do_partial_refund(store, order, lines, items_request, mark_fully_refunded)
++
++
++def _do_partial_refund(store, order, lines, items_request: list[dict],
++                        mark_fully_refunded: bool) -> dict:
++    """Core refund logic shared by full and partial refund."""
++    order_id = order["order_id"]
++    discount_cents = order["discount_cents"]
++
++    # Allocate discount across lines
++    line_discounts = discounts.allocate_line_discounts(lines, discount_cents)
++
++    # Build a map: sku -> (line_discount, quantity, unit_price)
++    line_info = {}
++    for i, (sku, qty, price, eligible) in enumerate(lines):
++        line_info[sku] = (line_discounts[i], qty, price)
++
++    # Compute per-item refund amounts
++    refund_items = []
++    total_amount = 0
++    for item in items_request:
++        sku = item["sku"]
++        refund_qty = item["quantity"]
++        line_discount, line_qty, unit_price = line_info[sku]
++        already = store.refunded_quantity(order_id, sku)
++        amount = _compute_line_refund_amount(unit_price, line_qty, line_discount, already, refund_qty)
++        refund_items.append((sku, refund_qty, amount))
++        total_amount += amount
++
++    # Cap at captured amount minus already refunded
++    already_refunded_total = store.total_refunded_cents(order_id)
++    captured = order["captured_cents"]
++    remaining_before = captured - already_refunded_total
++    total_amount = min(total_amount, remaining_before)
++
+     refund_id = store.next_id("ref")
+-    store.save_refund(refund_id, order_id, amount)
+-    return {"refund_id": refund_id, "order_id": order_id, "status": "refunded", "amount_cents": amount}
++    store.save_refund(refund_id, order_id, total_amount,
++                      items=refund_items, mark_refunded=mark_fully_refunded)
++
++    remaining_after = remaining_before - total_amount
++    return {
++        "refund_id": refund_id,
++        "order_id": order_id,
++        "status": "refunded",
++        "items": [{"sku": sku, "quantity": qty, "amount_cents": amt} for sku, qty, amt in refund_items],
++        "amount_cents": total_amount,
++        "remaining_refundable_cents": remaining_after,
++    }
+diff --git a/src/pocketcart/service.py b/src/pocketcart/service.py
+index d745fed..030bd96 100644
+--- a/src/pocketcart/service.py
++++ b/src/pocketcart/service.py
+@@ -32,3 +32,6 @@ class PocketCartApi:
+ 
+     def refund_order(self, order_id: str) -> dict:
+         return refunds.refund_order(self.store, order_id)
++
++    def partial_refund(self, order_id: str, items: list[dict]) -> dict:
++        return refunds.partial_refund(self.store, order_id, items)
+diff --git a/src/pocketcart/store.py b/src/pocketcart/store.py
+index a5cd2e0..4a64154 100644
+--- a/src/pocketcart/store.py
++++ b/src/pocketcart/store.py
+@@ -17,10 +17,19 @@ CREATE TABLE orders (
+ );
+ CREATE TABLE order_items (
+     order_id TEXT NOT NULL, position INTEGER NOT NULL, sku TEXT NOT NULL,
+-    quantity INTEGER NOT NULL, unit_price_cents INTEGER NOT NULL
++    quantity INTEGER NOT NULL, unit_price_cents INTEGER NOT NULL,
++    coupon_eligible INTEGER NOT NULL DEFAULT 1
+ );
+ CREATE TABLE idempotency (key TEXT PRIMARY KEY, cart_id TEXT NOT NULL, response TEXT NOT NULL);
+ CREATE TABLE refunds (refund_id TEXT PRIMARY KEY, order_id TEXT NOT NULL, amount_cents INTEGER NOT NULL);
++CREATE TABLE refund_items (
++    refund_id TEXT NOT NULL, order_id TEXT NOT NULL, sku TEXT NOT NULL,
++    quantity INTEGER NOT NULL, amount_cents INTEGER NOT NULL
++);
++CREATE TABLE refunded_quantities (
++    order_id TEXT NOT NULL, sku TEXT NOT NULL, quantity INTEGER NOT NULL,
++    PRIMARY KEY (order_id, sku)
++);
+ """
+ 
+ 
+@@ -78,25 +87,62 @@ class Store:
+             (order_id, cart_id, coupon_id, subtotal, discount, total,
+              payment.payment_id, payment.captured_cents),
+         )
+-        for position, (sku, quantity, unit_price) in enumerate(lines):
++        for position, (sku, quantity, unit_price, coupon_eligible) in enumerate(lines):
+             self.db.execute(
+-                "INSERT INTO order_items VALUES (?, ?, ?, ?, ?)",
+-                (order_id, position, sku, quantity, unit_price),
++                "INSERT INTO order_items VALUES (?, ?, ?, ?, ?, ?)",
++                (order_id, position, sku, quantity, unit_price, 1 if coupon_eligible else 0),
+             )
+ 
+     def get_order(self, order_id: str):
+         return self.db.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+ 
+-    def order_lines(self, order_id: str) -> list[tuple[str, int, int]]:
++    def order_lines(self, order_id: str) -> list[tuple[str, int, int, bool]]:
+         rows = self.db.execute(
+-            "SELECT sku, quantity, unit_price_cents FROM order_items WHERE order_id = ? ORDER BY position",
++            "SELECT sku, quantity, unit_price_cents, coupon_eligible FROM order_items WHERE order_id = ? ORDER BY position",
+             (order_id,),
+         )
+-        return [(r["sku"], r["quantity"], r["unit_price_cents"]) for r in rows]
++        return [(r["sku"], r["quantity"], r["unit_price_cents"], bool(r["coupon_eligible"])) for r in rows]
+ 
+-    def save_refund(self, refund_id: str, order_id: str, amount_cents: int) -> None:
++    def save_refund(self, refund_id: str, order_id: str, amount_cents: int,
++                    items: list[tuple[str, int, int]] | None = None,
++                    mark_refunded: bool = True) -> None:
+         self.db.execute("INSERT INTO refunds VALUES (?, ?, ?)", (refund_id, order_id, amount_cents))
+-        self.db.execute("UPDATE orders SET status = 'refunded' WHERE order_id = ?", (order_id,))
++        if items:
++            for sku, qty, item_amount in items:
++                self.db.execute(
++                    "INSERT INTO refund_items VALUES (?, ?, ?, ?, ?)",
++                    (refund_id, order_id, sku, qty, item_amount),
++                )
++                existing = self.db.execute(
++                    "SELECT quantity FROM refunded_quantities WHERE order_id = ? AND sku = ?",
++                    (order_id, sku),
++                ).fetchone()
++                if existing:
++                    self.db.execute(
++                        "UPDATE refunded_quantities SET quantity = quantity + ? WHERE order_id = ? AND sku = ?",
++                        (qty, order_id, sku),
++                    )
++                else:
++                    self.db.execute(
++                        "INSERT INTO refunded_quantities VALUES (?, ?, ?)",
++                        (order_id, sku, qty),
++                    )
++        if mark_refunded:
++            self.db.execute("UPDATE orders SET status = 'refunded' WHERE order_id = ?", (order_id,))
++
++    def refunded_quantity(self, order_id: str, sku: str) -> int:
++        row = self.db.execute(
++            "SELECT quantity FROM refunded_quantities WHERE order_id = ? AND sku = ?",
++            (order_id, sku),
++        ).fetchone()
++        return row["quantity"] if row else 0
++
++    def total_refunded_cents(self, order_id: str) -> int:
++        row = self.db.execute(
++            "SELECT COALESCE(SUM(amount_cents), 0) AS total FROM refunds WHERE order_id = ?",
++            (order_id,),
++        ).fetchone()
++        return row["total"] if row else 0
+ 
+     # idempotency
+     def get_idempotent(self, key: str):
+diff --git a/src/pocketcart/wsgi.py b/src/pocketcart/wsgi.py
+index 28af5c5..d3a7980 100644
+--- a/src/pocketcart/wsgi.py
++++ b/src/pocketcart/wsgi.py
+@@ -18,6 +18,7 @@ _ROUTES = [
+     ("POST", re.compile(r"^/checkout$"), "checkout"),
+     ("GET", re.compile(r"^/orders/([^/]+)$"), "get_order"),
+     ("POST", re.compile(r"^/orders/([^/]+)/refund$"), "refund_order"),
++    ("POST", re.compile(r"^/orders/([^/]+)/refunds$"), "partial_refund"),
+ ]
+ 
+ 
+@@ -97,3 +98,9 @@ class WsgiApp:
+ 
+     def _h_refund_order(self, body, environ, order_id):
+         return 201, self.api.refund_order(order_id)
++
++    def _h_partial_refund(self, body, environ, order_id):
++        items = body.get("items")
++        if not isinstance(items, list):
++            raise ApiError(422, "invalid_refund_items", "items must be a list")
++        return 201, self.api.partial_refund(order_id, items)
+diff --git a/tests/test_partial_refund.py b/tests/test_partial_refund.py
+new file mode 100644
+index 0000000..34d3cf6
+--- /dev/null
++++ b/tests/test_partial_refund.py
+@@ -0,0 +1,294 @@
++"""Tests for POST /orders/{order_id}/refunds (partial item-level refund)."""
++
++# ---------------------------------------------------------------------------
++# Numeric fixtures (hand-verified against the allocation rules in the spec)
++#
++# SAVE10 = 10%, SAVE25 = 25%
++# TSHIRT = 2000 cents  coupon_eligible=True
++# MUG    = 1250 cents  coupon_eligible=True
++# GIFTCARD = 5000 cents  coupon_eligible=False
++#
++# Allocation rule (from spec):
++#   D  = order discount_cents
++#   W  = sum of line_total_cents over coupon-eligible lines
++#   Line i floor = D * w_i // W
++#   Remaining cents to lines sorted by descending (D*w_i % W), ties by position asc
++#
++# Unit discount rule:
++#   n units of line (q total, L allocated, j already refunded):
++#     discount = (L*(j+n))//q - (L*j)//q
++#     amount   = n * unit_price - discount
++# ---------------------------------------------------------------------------
++
++
++# --- Response-shape -----------------------------------------------------------
++
++def test_partial_refund_response_shape(client):
++    # Single eligible item, no coupon → pure unit-price refund
++    order = client.order_with({"TSHIRT": 2}, key="k1")
++    oid = order["order_id"]
++    resp = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert resp.status == 201
++    body = resp.body
++    assert body["order_id"] == oid
++    assert body["status"] == "refunded"
++    assert isinstance(body["refund_id"], str)
++    assert isinstance(body["amount_cents"], int)
++    assert isinstance(body["remaining_refundable_cents"], int)
++    assert body["items"] == [{"sku": "TSHIRT", "quantity": 1, "amount_cents": body["items"][0]["amount_cents"]}]
++
++
++# --- Criterion 2: one discounted item returns price minus allocated discount --
++
++def test_single_discounted_item_amount(client):
++    # TSHIRT x2, SAVE10 → discount=400, W=4000, TSHIRT gets full 400
++    # refund 1 unit: j=0, n=1, q=2, L=400 → disc=(400*1)//2 - 0 = 200 → amount=1800
++    order = client.order_with({"TSHIRT": 2}, "SAVE10", key="k1")
++    oid = order["order_id"]
++    resp = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert resp.status == 201
++    assert resp.body["items"][0] == {"sku": "TSHIRT", "quantity": 1, "amount_cents": 1800}
++    assert resp.body["amount_cents"] == 1800
++    assert resp.body["remaining_refundable_cents"] == order["payment"]["captured_cents"] - 1800
++
++
++def test_ineligible_line_gets_no_discount(client):
++    # TSHIRT x2 + GIFTCARD x1, SAVE10
++    # discount=400, W=4000 (TSHIRT only), GIFTCARD discount=0
++    # Refund GIFTCARD: amount = 5000 - 0 = 5000
++    order = client.order_with({"TSHIRT": 2, "GIFTCARD": 1}, "SAVE10", key="k1")
++    oid = order["order_id"]
++    resp = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "GIFTCARD", "quantity": 1}]})
++    assert resp.status == 201
++    assert resp.body["items"][0] == {"sku": "GIFTCARD", "quantity": 1, "amount_cents": 5000}
++
++
++# --- Criterion 3: multiple operations never exceed captured; full set equals captured ---
++
++def test_incremental_refunds_sum_to_captured(client):
++    # TSHIRT x2, SAVE10 → captured=3600
++    # unit 1: discount = (400*1)//2 - 0 = 200 → 1800
++    # unit 2: discount = (400*2)//2 - (400*1)//2 = 400-200 = 200 → 1800
++    order = client.order_with({"TSHIRT": 2}, "SAVE10", key="k1")
++    oid = order["order_id"]
++    captured = order["payment"]["captured_cents"]  # 3600
++    r1 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert r1.status == 201
++    assert r1.body["amount_cents"] == 1800
++    assert r1.body["remaining_refundable_cents"] == 1800
++    r2 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert r2.status == 201
++    assert r2.body["amount_cents"] == 1800
++    assert r2.body["remaining_refundable_cents"] == 0
++    assert r1.body["amount_cents"] + r2.body["amount_cents"] == captured
++
++
++def test_partial_then_full_refund_sums_to_captured(client):
++    # Partial refund one unit, then full-refund endpoint refunds the rest
++    order = client.order_with({"TSHIRT": 2}, "SAVE10", key="k1")
++    oid = order["order_id"]
++    captured = order["payment"]["captured_cents"]
++    r1 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert r1.status == 201
++    r2 = client.post(f"/orders/{oid}/refund")
++    assert r2.status == 201
++    assert r1.body["amount_cents"] + r2.body["amount_cents"] == captured
++
++
++def test_refunding_all_units_sums_to_captured_multi_line(client):
++    # TSHIRT x1, MUG x1, SAVE10
++    # subtotal=3250, discount=(3250*10+50)//100=325
++    # W=3250 (both eligible)
++    # TSHIRT: floor(325*2000/3250)=200, MUG: floor(325*1250/3250)=125 → sum=325, no remainder
++    # captured=2925
++    # refund TSHIRT: 2000-200=1800; refund MUG: 1250-125=1125; total=2925
++    order = client.order_with({"TSHIRT": 1, "MUG": 1}, "SAVE10", key="k1")
++    oid = order["order_id"]
++    captured = order["payment"]["captured_cents"]  # 2925
++    r1 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    r2 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "MUG", "quantity": 1}]})
++    assert r1.status == 201 and r2.status == 201
++    assert r1.body["amount_cents"] + r2.body["amount_cents"] == captured
++
++
++# --- Criterion 4: Deterministic rounding (remainder distribution) -------------
++
++def test_remainder_cent_goes_to_highest_modulo_line(client):
++    # TSHIRT x1 + MUG x1, SAVE25
++    # subtotal=3250; discount=(3250*25+50)//100=813
++    # W=3250
++    # TSHIRT (w=2000): floor(813*2000/3250)=500, mod=813*2000%3250=1000
++    # MUG    (w=1250): floor(813*1250/3250)=312, mod=813*1250%3250=2250
++    # sum=812, remainder=1 → MUG gets +1 (mod 2250 > 1000)
++    # TSHIRT discount=500, MUG discount=313
++    # captured = 3250-813=2437
++    order = client.order_with({"TSHIRT": 1, "MUG": 1}, "SAVE25", key="k1")
++    oid = order["order_id"]
++    r1 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    r2 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "MUG", "quantity": 1}]})
++    assert r1.body["items"][0]["amount_cents"] == 1500  # 2000-500
++    assert r2.body["items"][0]["amount_cents"] == 937   # 1250-313
++    assert r1.body["amount_cents"] + r2.body["amount_cents"] == order["payment"]["captured_cents"]
++
++
++def test_multi_unit_line_discount_is_deterministic(client):
++    # TSHIRT x3, SAVE10 → subtotal=6000, discount=(6000*10+50)//100=600
++    # W=6000, TSHIRT gets 600
++    # unit 1: (600*1)//3 - 0 = 200 → 1800
++    # unit 2: (600*2)//3 - (600*1)//3 = 400-200 = 200 → 1800
++    # unit 3: (600*3)//3 - (600*2)//3 = 600-400 = 200 → 1800
++    order = client.order_with({"TSHIRT": 3}, "SAVE10", key="k1")
++    oid = order["order_id"]
++    captured = order["payment"]["captured_cents"]  # 5400
++    r1 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    r2 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    r3 = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert r1.body["amount_cents"] == 1800
++    assert r2.body["amount_cents"] == 1800
++    assert r3.body["amount_cents"] == 1800
++    assert r1.body["amount_cents"] + r2.body["amount_cents"] + r3.body["amount_cents"] == captured
++
++
++# --- Criterion 5: Amounts use checkout-time pricing, not current catalog ------
++
++def test_partial_refund_amount_uses_checkout_price(client):
++    # The order stores unit_price_cents at checkout; even if catalog changed the
++    # price would be irrelevant. We verify the amount matches what was stored,
++    # not any live catalog lookup.
++    order = client.order_with({"TSHIRT": 1}, key="k1")
++    oid = order["order_id"]
++    stored_price = order["items"][0]["unit_price_cents"]
++    resp = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert resp.status == 201
++    # No discount on this order, so refund = stored unit price
++    assert resp.body["items"][0]["amount_cents"] == stored_price
++
++
++# --- Multiple items in one request --------------------------------------------
++
++def test_multi_item_request_sums_correctly(client):
++    # TSHIRT x1, MUG x1, SAVE10 → TSHIRT disc=200, MUG disc=125
++    # Refund both in one call
++    order = client.order_with({"TSHIRT": 1, "MUG": 1}, "SAVE10", key="k1")
++    oid = order["order_id"]
++    resp = client.post(f"/orders/{oid}/refunds",
++                       {"items": [{"sku": "TSHIRT", "quantity": 1}, {"sku": "MUG", "quantity": 1}]})
++    assert resp.status == 201
++    items_by_sku = {i["sku"]: i for i in resp.body["items"]}
++    assert items_by_sku["TSHIRT"]["amount_cents"] == 1800
++    assert items_by_sku["MUG"]["amount_cents"] == 1125
++    assert resp.body["amount_cents"] == 2925
++    assert resp.body["remaining_refundable_cents"] == 0
++
++
++# --- Order status -----------------------------------------------------------
++
++def test_partial_refund_does_not_mark_order_refunded_until_all_units_done(client):
++    order = client.order_with({"TSHIRT": 2}, key="k1")
++    oid = order["order_id"]
++    client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert client.get(f"/orders/{oid}").body["status"] == "paid"
++
++
++def test_partial_refund_marks_order_refunded_when_all_units_done(client):
++    order = client.order_with({"TSHIRT": 1}, key="k1")
++    oid = order["order_id"]
++    client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert client.get(f"/orders/{oid}").body["status"] == "refunded"
++
++
++# --- Refund id sequence shared with full-refund endpoint ---------------------
++
++def test_partial_refund_ids_share_sequence_with_full_refund(client):
++    o1 = client.order_with({"TSHIRT": 1}, key="k1")
++    o2 = client.order_with({"MUG": 1}, key="k2")
++    r1 = client.post(f"/orders/{o1['order_id']}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    r2 = client.post(f"/orders/{o2['order_id']}/refund")
++    assert r1.body["refund_id"] == "ref_0001"
++    assert r2.body["refund_id"] == "ref_0002"
++
++
++# --- Error cases -------------------------------------------------------------
++
++def test_partial_refund_unknown_order_is_404(client):
++    resp = client.post("/orders/order_9999/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert resp.status == 404
++    assert resp.body["error"]["code"] == "order_not_found"
++
++
++def test_partial_refund_empty_items_is_422(client):
++    order = client.order_with({"TSHIRT": 1}, key="k1")
++    resp = client.post(f"/orders/{order['order_id']}/refunds", {"items": []})
++    assert resp.status == 422
++    assert resp.body["error"]["code"] == "invalid_refund_items"
++
++
++def test_partial_refund_sku_not_in_order_is_422(client):
++    order = client.order_with({"TSHIRT": 1}, key="k1")
++    resp = client.post(f"/orders/{order['order_id']}/refunds", {"items": [{"sku": "MUG", "quantity": 1}]})
++    assert resp.status == 422
++    assert resp.body["error"]["code"] == "invalid_refund_items"
++
++
++def test_partial_refund_duplicate_sku_in_request_is_422(client):
++    order = client.order_with({"TSHIRT": 2}, key="k1")
++    resp = client.post(f"/orders/{order['order_id']}/refunds",
++                       {"items": [{"sku": "TSHIRT", "quantity": 1}, {"sku": "TSHIRT", "quantity": 1}]})
++    assert resp.status == 422
++    assert resp.body["error"]["code"] == "invalid_refund_items"
++
++
++def test_partial_refund_quantity_zero_is_422(client):
++    order = client.order_with({"TSHIRT": 2}, key="k1")
++    resp = client.post(f"/orders/{order['order_id']}/refunds",
++                       {"items": [{"sku": "TSHIRT", "quantity": 0}]})
++    assert resp.status == 422
++    assert resp.body["error"]["code"] == "invalid_refund_items"
++
++
++def test_partial_refund_exceeds_available_quantity_is_409(client):
++    order = client.order_with({"TSHIRT": 1}, key="k1")
++    resp = client.post(f"/orders/{order['order_id']}/refunds",
++                       {"items": [{"sku": "TSHIRT", "quantity": 2}]})
++    assert resp.status == 409
++    assert resp.body["error"]["code"] == "refund_exceeds_order"
++
++
++def test_partial_refund_after_partial_exceeds_remaining_is_409(client):
++    order = client.order_with({"TSHIRT": 1}, key="k1")
++    oid = order["order_id"]
++    client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    resp = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert resp.status == 409
++    assert resp.body["error"]["code"] == "refund_exceeds_order"
++
++
++def test_partial_refund_on_fully_refunded_order_is_409(client):
++    order = client.order_with({"TSHIRT": 1}, key="k1")
++    oid = order["order_id"]
++    # Full-refund it first
++    client.post(f"/orders/{oid}/refund")
++    resp = client.post(f"/orders/{oid}/refunds", {"items": [{"sku": "TSHIRT", "quantity": 1}]})
++    assert resp.status == 409
++    assert resp.body["error"]["code"] == "refund_exceeds_order"
++
++
++def test_partial_refund_missing_items_key_is_422(client):
++    order = client.order_with({"TSHIRT": 1}, key="k1")
++    resp = client.post(f"/orders/{order['order_id']}/refunds", {})
++    assert resp.status == 422
++    assert resp.body["error"]["code"] == "invalid_refund_items"
++
++
++# --- Criterion 1: Full-refund endpoint still works normally ------------------
++
++def test_full_refund_still_works_after_partial_impl(client):
++    order = client.order_with({"TSHIRT": 2, "GIFTCARD": 1}, "SAVE10", key="k1")
++    resp = client.post(f"/orders/{order['order_id']}/refund")
++    assert resp.status == 201
++    assert resp.body == {
++        "refund_id": "ref_0001",
++        "order_id": order["order_id"],
++        "status": "refunded",
++        "amount_cents": order["payment"]["captured_cents"],
++    }

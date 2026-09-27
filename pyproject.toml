@@ -5,8 +5,14 @@ description = "FutureFork: rehearse future changes on isolated code candidates."
 requires-python = ">=3.12"
 dependencies = ["pydantic>=2.7", "pyyaml>=6"]
 
+[project.scripts]
+futurefork = "futurefork.cli:main"
+
+[tool.setuptools]
+packages = ["futurefork"]
+
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "jsonschema>=4.20"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,31 @@
+{
+  "candidate": {
+    "name": "coupled",
+    "ref": "coupled",
+    "starting_commit": "11f9d4e8559ec56fc818b9b9e72c2150e9560931"
+  },
+  "evaluator": {
+    "test_pack_sha256": "618a9aba91cf9f24e6bde4c8368e46f5256ed4e8a5f56e75435649aa83b33f50"
+  },
+  "repo": "/Users/longkimnguyen/Documents/ChatGPT/IBM",
+  "run_id": "20260927T123119Z-coupled-partial-refund",
+  "scenario": {
+    "id": "partial-refund",
+    "path": "/Users/longkimnguyen/Documents/ChatGPT/IBM/scenarios/demo/partial-refund.yaml",
+    "sha256": "151ddf1d45b76408b1026394139bcf5b6102a0d9bd1bb5576a2af2036dcfed9f"
+  },
+  "started_at": "2026-09-27T12:31:19Z",
+  "worktree": {
+    "commit": "11f9d4e8559ec56fc818b9b9e72c2150e9560931",
+    "dirty_source_paths": [],
+    "full_ref": "refs/heads/coupled",
+    "path": "/private/var/folders/rw/p_qw4b693_n2yml_wkt0tn6r0000gn/T/futurefork-worktrees-501/20260927T123119Z-coupled-partial-refund",
+    "ref": "coupled",
+    "source_dirty": false,
+    "tree": "d7342a5aa36f7bf934e248b5df8dc971445af50a",
+    "watch_refs": {
+      "refs/heads/coupled": "11f9d4e8559ec56fc818b9b9e72c2150e9560931"
+    }
+  },
+  "worktree_root": "/var/folders/rw/p_qw4b693_n2yml_wkt0tn6r0000gn/T/futurefork-worktrees-501"
+}

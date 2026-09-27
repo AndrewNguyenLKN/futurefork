@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FutureFork evidence: partial-refund</title>
+<style>
+:root {
+  --bg: #0b0f14; --panel: #121821; --panel2: #171f2b; --border: #253143; --text: #e6edf3;
+  --muted: #93a3b8; --accent: #5fb3ff; --good: #3ecf8e; --bad: #ff6b6b; --warn: #f5c451;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f6f8fa; --panel: #ffffff; --panel2: #f1f4f8; --border: #d8e0ea; --text: #0b0f14;
+    --muted: #526176; --accent: #0969da; --good: #1a7f4e; --bad: #cf222e; --warn: #9a6700;
+  }
+}
+:root[data-theme="dark"] { --bg: #0b0f14; --panel: #121821; --panel2: #171f2b; --border: #253143; --text: #e6edf3; --muted: #93a3b8; --accent: #5fb3ff; --good: #3ecf8e; --bad: #ff6b6b; --warn: #f5c451; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 28px 16px 64px; }
+h1 { font-size: 26px; margin: 0 0 4px; }
+h2 { font-size: 18px; margin: 40px 0 12px; border-top: 1px solid var(--border); padding-top: 24px; }
+.sub { color: var(--muted); margin: 0 0 20px; }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.pill.good { background: color-mix(in srgb, var(--good) 20%, transparent); color: var(--good); }
+.pill.warn { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+.banner { background: var(--panel2); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: 8px; padding: 14px 16px; margin: 18px 0; }
+.banner b { color: var(--warn); }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+.card h3 { margin: 0 0 2px; font-size: 16px; }
+.card .meta { color: var(--muted); font-size: 12.5px; margin-bottom: 12px; }
+.row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--border); font-size: 13.5px; }
+.row:first-of-type { border-top: none; }
+.row .k { color: var(--muted); }
+.row .v { text-align: right; font-variant-numeric: tabular-nums; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.links { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+.links a { border: 1px solid var(--border); border-radius: 6px; padding: 4px 9px; font-size: 12.5px; }
+ul.caveats { margin: 8px 0 0; padding-left: 20px; font-size: 13px; color: var(--muted); }
+ul.caveats li { margin: 4px 0; }
+table.matrix { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 13.5px; }
+table.matrix th, table.matrix td { border: 1px solid var(--border); padding: 8px 10px; text-align: center; }
+table.matrix th { background: var(--panel2); }
+table.matrix td.done { background: color-mix(in srgb, var(--good) 12%, transparent); }
+table.matrix td.todo { color: var(--muted); }
+footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--border); padding-top: 16px; }
+.claims { font-size: 13.5px; }
+.claims .ok::before { content: "✓ "; color: var(--good); }
+.claims .no::before { content: "✗ "; color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>FutureFork — partial-refund evidence</h1>
+  <p class="sub">Generated 2026-09-27 12:51 UTC by <code>scripts/build_dashboard.py</code> from real files under <code>artifacts/runs/</code> and <code>bob_sessions/</code>. Every number below links to the artifact it came from. Nothing here is computed live or fetched over the network — open this file directly.</p>
+
+  <div class="banner">
+    <b>Scope of this evidence: 1 of 3 frozen scenarios × 2 of 2 candidates.</b>
+    Only <code>partial-refund</code> has been run on both <code>coupled</code> and <code>modular</code>.
+    <code>organization-pricing</code> and <code>ordered-discounts</code> have <b>not been run on either candidate</b>.
+    This is not the full 2×3 evidence matrix (P0.8 is still in progress) — do not present it as one.
+  </div>
+
+  <h2>Scenario × candidate matrix</h2>
+  
+    <table class="matrix">
+      <thead><tr><th>Scenario</th><th>coupled</th><th>modular</th></tr></thead>
+      <tbody><tr><td>partial-refund</td><td class="done">✓ evidence</td><td class="done">✓ evidence</td></tr><tr><td>organization-pricing</td><td class="todo">not run</td><td class="todo">not run</td></tr><tr><td>ordered-discounts</td><td class="todo">not run</td><td class="todo">not run</td></tr></tbody>
+    </table>
+
+  <h2>partial-refund: coupled vs. modular</h2>
+  <div class="grid">
+    
+    <div class="card">
+      <h3>Candidate B (futurefork prepare/finalize CLI)</h3>
+      <div class="meta">Candidate ref <code>coupled</code> · starting commit <code>11f9d4e8559e…</code></div>
+      <div class="row"><span class="k">Bob task ID</span><span class="v mono">5c4c002baa472064dd11971c601c6436</span></div>
+      <div class="row"><span class="k">Bobcoins spent</span><span class="v">2.65</span></div>
+      <div class="row"><span class="k">Outcome</span><span class="v"><span class="pill good">completed</span></span></div>
+      <div class="row"><span class="k">Regression suite</span><span class="v">70 passed</span></div>
+      <div class="row"><span class="k">Protected pack (partial-refund)</span><span class="v">34 / 34 passed</span></div>
+      <div class="row"><span class="k">Protected pack hash after run</span><span class="v"><span class="pill good">matches frozen</span></span></div>
+      <div class="row"><span class="k">Changed files</span><span class="v">7</span></div>
+      <div class="row"><span class="k">Lines changed</span><span class="v">+558 / -23</span></div>
+      <div class="row"><span class="k">Boundary violations</span><span class="v"><span class="pill good">none</span></span></div>
+      <div class="row"><span class="k">Wall time (finalize)</span><span class="v">0.795s</span></div>
+      <div class="row"><span class="k">Evaluated on</span><span class="v" style="text-align:right;max-width:60%">isolated detached worktree, evaluated in place by `futurefork finalize`</span></div>
+      <p class="mono" style="color:var(--muted);font-size:12px;margin:12px 0 0">Changed: <code>src/pocketcart/checkout.py</code>, <code>src/pocketcart/discounts.py</code>, <code>src/pocketcart/refunds.py</code>, <code>src/pocketcart/service.py</code>, <code>src/pocketcart/store.py</code>, <code>src/pocketcart/wsgi.py</code>, <code>tests/test_partial_refund.py</code></p>
+      
+      <div class="links">
+        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/patch.diff">patch.diff</a>
+        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/test-results.json">test-results.json</a>
+        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/changed-paths.json">changed-paths.json</a>
+        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/events.jsonl">events.jsonl</a>
+        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/manifest.json">manifest.json</a>
+        
+        <a href="../bob_sessions/futurefork_task03_p08_coupled_partial_refund_summary.png">Bob session screenshot</a>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3>Candidate A (manual, pre-CLI)</h3>
+      <div class="meta">Candidate ref <code>modular</code> · starting commit <code>f9e3ecda1e4a…</code></div>
+      <div class="row"><span class="k">Bob task ID</span><span class="v mono">d12b84c1a6a03a337b56b8594ebd6d2a</span></div>
+      <div class="row"><span class="k">Bobcoins spent</span><span class="v">5.40</span></div>
+      <div class="row"><span class="k">Outcome</span><span class="v"><span class="pill good">completed</span></span></div>
+      <div class="row"><span class="k">Regression suite</span><span class="v">68 passed</span></div>
+      <div class="row"><span class="k">Protected pack (partial-refund)</span><span class="v">34 / 34 passed</span></div>
+      <div class="row"><span class="k">Protected pack hash after run</span><span class="v"><span class="pill good">matches frozen</span></span></div>
+      <div class="row"><span class="k">Changed files</span><span class="v">6</span></div>
+      <div class="row"><span class="k">Lines changed</span><span class="v">not recorded (pre-manifest run)</span></div>
+      <div class="row"><span class="k">Boundary violations</span><span class="v"><span class="pill good">none</span></span></div>
+      <div class="row"><span class="k">Wall time (finalize)</span><span class="v">not recorded (pre-manifest run)</span></div>
+      <div class="row"><span class="k">Evaluated on</span><span class="v" style="text-align:right;max-width:60%">snapshot copy of the worktree (oracle never mounted in the Bob worktree)</span></div>
+      <p class="mono" style="color:var(--muted);font-size:12px;margin:12px 0 0">Changed: <code>src/pocketcart/checkout.py</code>, <code>src/pocketcart/refunds.py</code>, <code>src/pocketcart/service.py</code>, <code>src/pocketcart/store.py</code>, <code>src/pocketcart/wsgi.py</code>, <code>tests/test_partial_refund.py</code></p>
+      <div class="banner"><b>Disclosed deviations for this run</b><ul class="caveats"><li><strong>Oracle-informed feedback.</strong> After the first oracle run, Bob was told the response status must be `refunded`. The value is in the frozen public interface, but the trigger was a protected-test failure. If the same treatment is not given to every candidate × scenario run, the comparison is unequal. Decide one policy (feedback allowed, counted as an attempt, for all runs; or no feedback) before running `coupled`.</li><li><strong>Lost attempt-1 patch.</strong> A cleanup bug deleted the worktree (see incident). The final implementation is Bob&#x27;s re-application from its own task history, not the original attempt-1 output, so attempt 1 cannot be inspected. The 33/34 first result is reported only.</li><li><strong>Bob could not run tests.</strong> Bob&#x27;s Python has no pytest, so its development tests were run by the operator from outside the worktree. Bob still wrote them. Give the next run the same arrangement or fix the environment for both.</li><li><strong>Boundary probing.</strong> Bob reportedly inspected system Python paths (outside the workspace). Reportedly no FutureFork repo or pack access; not verifiable from artifacts.</li><li><strong>Packet fidelity.</strong> The task packet&#x27;s illustrative response used `&quot;order_id&quot;: &quot;ord_0001&quot;`, but real ids are `order_0001`. It did not affect the result but the packet was not generated from the frozen YAML byte for byte.</li><li><strong>Unmount bug.</strong> Do not reuse the earlier unmount snippet. Evaluation now happens on a snapshot copy; the oracle is never mounted in Bob&#x27;s worktree.</li></ul></div>
+      <div class="links">
+        <a href="../artifacts/runs/p03-manual-modular-partial-refund/patch.diff">patch.diff</a>
+        <a href="../artifacts/runs/p03-manual-modular-partial-refund/test-results.json">test-results.json</a>
+        <a href="../artifacts/runs/p03-manual-modular-partial-refund/changed-paths.json">changed-paths.json</a>
+        <a href="../artifacts/runs/p03-manual-modular-partial-refund/events.jsonl">events.jsonl</a>
+        
+        <a href="../artifacts/runs/p03-manual-modular-partial-refund/human-notes.md">human-notes.md</a>
+        <a href="../bob_sessions/futurefork_task02_p03_modular_partial_refund_summary.png">Bob session screenshot</a>
+      </div>
+    </div>
+  </div>
+
+  <h2>What this evidence supports — and does not</h2>
+  <div class="card claims">
+    <p class="ok">Both candidates independently satisfy the same frozen, hidden protected test pack for <code>partial-refund</code> (pack hash <code class="mono">618a9aba91cf9f24…</code>, unchanged after each run).</p>
+    <p class="ok">Both runs are traceable to a real IBM Bob task ID, a real Bobcoin spend, and a real task-session screenshot in <code>bob_sessions/</code>.</p>
+    <p class="ok">The <code>coupled</code> run has zero disclosed human interventions and zero boundary violations; the <code>modular</code> run has 6 disclosed deviations (oracle-informed feedback, a lost first attempt after a cleanup incident, and others — see its <code>human-notes.md</code>), which is a real fairness asymmetry between the two runs, not evidence that one candidate is better.</p>
+    <p class="no">This does <b>not</b> show which architecture is "more maintainable" — one scenario is not enough evidence for that, and the product's own rules (<code>docs/EVALUATION.md</code>) forbid that claim regardless.</p>
+    <p class="no">This does <b>not</b> represent the full 2×3 matrix. <code>organization-pricing</code> and <code>ordered-discounts</code> have no runs yet.</p>
+    <p class="no">Nothing here is a benchmark, a score, or a prediction. It is two disclosed, reproducible executions of the same frozen requirement.</p>
+  </div>
+
+  <footer>
+    FutureFork · synthetic PocketCart data only · this file is static and safe to open offline · source: <code>scripts/build_dashboard.py</code> · regenerate anytime by re-running that script after new runs finalize.
+  </footer>
+</div>
+</body>
+</html>

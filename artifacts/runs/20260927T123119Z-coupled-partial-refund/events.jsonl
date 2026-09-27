@@ -1,0 +1,5 @@
+{"at": "2026-09-27T12:31:48Z", "message": "finalize started for candidate=coupled scenario=partial-refund task_id=5c4c002baa472064dd11971c601c6436", "seq": 1}
+{"at": "2026-09-27T12:31:48Z", "message": "patch frozen: 7 changed path(s), tree 89bf7d166709cebff98c18d8cab3098150668f68", "seq": 2}
+{"at": "2026-09-27T12:31:48Z", "message": "protected pack mounted and verified at .futurefork-evaluator/partial_refund", "seq": 3}
+{"at": "2026-09-27T12:31:49Z", "message": "regression: state=passed returncode=0 timed_out=False", "seq": 4}
+{"at": "2026-09-27T12:31:49Z", "message": "protected: state=passed returncode=0 timed_out=False", "seq": 5}

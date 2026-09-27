@@ -5,11 +5,14 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
 
 # Node
 node_modules/
 dist/
 .vite/
+.codex-build/
+.codex-finalizer/
 
 # Secrets and local environment
 .env
@@ -21,8 +24,12 @@ dist/
 .futurefork/tmp/
 artifacts/runs/*/workspace/
 
+# Submission build intermediates (keep final deck/video)
+assets/submission/video/narration/*.aiff
+assets/submission/video/segment-*.mp4
+assets/submission/video/concat.txt
+
 # OS/editor
 .DS_Store
 .idea/
 .vscode/
-

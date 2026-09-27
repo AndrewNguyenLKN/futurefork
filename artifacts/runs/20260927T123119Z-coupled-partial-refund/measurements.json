@@ -1,0 +1,10 @@
+{
+  "attempts": 1,
+  "duration_seconds": 0.795,
+  "output_bytes": 198,
+  "changed_files": 7,
+  "lines_added": 558,
+  "lines_deleted": 23,
+  "human_interventions": [],
+  "boundary_violations": []
+}

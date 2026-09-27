@@ -62,21 +62,21 @@ The MVP does not predict real future requirements, prove maintainability, or aut
 
 ## Current state
 
-Planning and research are documented. P0.1 (scenario contracts) is complete. P0.2 (PocketCart candidates) is complete: baseline commit `0d8b6c2` exists on `main` and the local parentless refs `coupled` and `modular` are created and verified (see `BACKLOG.md`). Nothing is pushed. Claude Code wrote both; no Bob task is associated with them (D012). The protected test packs for all three scenarios are authored and hash-frozen (`docs/PROTECTED_TESTS.md`); they fail on the unchanged candidates as intended, but no implementation has yet been shown to satisfy them.
+Planning and research are documented. P0.1 (scenario contracts), P0.2 (PocketCart candidates), and the manual P0.3 workflow proof are complete. Baseline commit `0d8b6c2` exists on `main` and the local parentless refs `coupled` and `modular` are created and verified (see `BACKLOG.md`). Nothing is pushed. Claude Code wrote P0.1/P0.2 and the protected packs; no Bob task is associated with those parts (D012). Bob task `d12b84c1a6a03a337b56b8594ebd6d2a` implemented `partial-refund` on an isolated `modular` worktree for P0.3. Its final patch passed 68/68 public tests and 34/34 protected tests; evidence and disclosed deviations are under `artifacts/runs/p03-manual-modular-partial-refund/`.
 
 Verified on 26 September 2026:
 
 - IBM Bob IDE v2.2.0 is installed, logged into the hackathon Enterprise account in `us-east`, and opened on this repository.
-- The account began with 40 Bobcoins. A read-only onboarding task used `0.384`; the working remainder is `39.616`.
-- The onboarding task is indexed in `bob_sessions/INDEX.md`; its real summary PNG is already in `bob_sessions/`.
+- The account began with 40 Bobcoins. The read-only onboarding task used `0.384`; P0.3 used `5.40`. The arithmetic remainder is `34.216`, subject to confirmation in the Bob dashboard.
+- Both completed Bob tasks are indexed in `bob_sessions/INDEX.md`; their real summary PNGs are in `bob_sessions/`.
 - Official Discord channels were identified and are recorded in `docs/HACKATHON_SETUP_VI.md`. Do not post, react, or change Discord state on the user's behalf.
 - The participant is solo. Creating a one-person team on lablab.ai is still a user-owned pending action required for submission.
 - All current repository content is planning/evidence and is still uncommitted. Preserve it and inspect `git status` before changing files.
 
 ## Claude Code handoff
 
-Phase A is complete. The next step is **P0.3**, which is a Bob IDE task run by the user: open Bob IDE on an isolated worktree of one candidate (never the repository root, which contains the protected packs), have Bob implement `partial-refund`, then mount the verified pack and run it.
+Phase A, the manual P0.3 proof, **P0.4** (run manifest), **P0.5** (isolated Git worktrees) and **P0.6+P0.7** (the operator-driven `futurefork prepare`/`finalize` CLI with fail-closed protected-pack verification: `futurefork/runner.py`, `futurefork/cli.py`) are complete. No `futurefork run` single-shot command exists on purpose — there is no Bob API, so the CLI is honestly two operator-driven stages. The next implementation block is **P0.8**: run both candidates against all three scenarios (the 2×3 evidence matrix) through Bob IDE, recording failures honestly. This requires spending real Bobcoins and real Bob tasks; do not simulate it. Preserve the manual P0.3 artifacts as fixtures/evidence; do not rewrite their original contents.
 
-Before implementation, briefly state the files you plan to create and any schema decision that is not already settled. Do not redesign the product, rename FutureFork, start the dashboard, or skip ahead to P0.2 unless the user explicitly asks.
+Before implementation, briefly state the files you plan to create and any schema decision that is not already settled. Do not redesign the product, rename FutureFork, or start the dashboard. P0.4–P0.7 are implemented and verified; the 2×3 Bob evidence matrix (P0.8) may now begin, but only through real Bob IDE tasks with real task ids — never fabricate a run.
 
 Claude Code may build the deterministic harness, evaluator, tests, documentation, and UI. It must not fabricate Bob output or silently perform the six candidate future implementations that the evidence matrix attributes to IBM Bob. Those material experiment implementations must be run through Bob IDE and evidenced with real task-session summaries. If Claude Code materially implements another component later, record that role honestly in the final Bob Usage Statement.

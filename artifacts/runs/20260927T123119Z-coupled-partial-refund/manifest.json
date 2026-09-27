@@ -1,0 +1,151 @@
+{
+  "agent": {
+    "human_triggered": true,
+    "provider": "IBM Bob",
+    "task_id": "5c4c002baa472064dd11971c601c6436"
+  },
+  "artifacts": [
+    {
+      "kind": "scenario",
+      "path": "scenario.yaml",
+      "sha256": "151ddf1d45b76408b1026394139bcf5b6102a0d9bd1bb5576a2af2036dcfed9f",
+      "size_bytes": 3488
+    },
+    {
+      "kind": "task_packet",
+      "path": "task-packet.md",
+      "sha256": "395377e70c362602590d19a3bb1d24f4ffb990f6d32a08555f80a83a3fb6f11f",
+      "size_bytes": 3798
+    },
+    {
+      "kind": "patch",
+      "path": "patch.diff",
+      "sha256": "936e7c80e24c6c3633e7205e9f85a82cd5649a99f5c88056647c079d6769af4c",
+      "size_bytes": 32029
+    },
+    {
+      "kind": "changed_paths",
+      "path": "changed-paths.json",
+      "sha256": "7f2eb574b1833f77290a6795241630559a659b273ace2f9efabe12b2fc58ec60",
+      "size_bytes": 480
+    },
+    {
+      "kind": "test_results",
+      "path": "test-results.json",
+      "sha256": "9aea86e9a82c7bcc889015184bb8a0a239f1d9923df4471ce65e7a1460edc3de",
+      "size_bytes": 540
+    },
+    {
+      "kind": "measurements",
+      "path": "measurements.json",
+      "sha256": "30f055a407b70659527457eeb4877580d5bdb0668502feab8e2cff09b86619e9",
+      "size_bytes": 197
+    },
+    {
+      "kind": "events",
+      "path": "events.jsonl",
+      "sha256": "a2d9212f028e339e0766a746ea76a6fb41c457c1cb5638a560e15454b9701aa7",
+      "size_bytes": 641
+    },
+    {
+      "kind": "stdout_log",
+      "path": "stdout.log",
+      "sha256": "697b1500284c7f9f714d15fffdb65b4694c3e70c9f9a000b79b0f47afa1607a5",
+      "size_bytes": 281
+    },
+    {
+      "kind": "stderr_log",
+      "path": "stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "kind": "other",
+      "path": "state.json",
+      "sha256": "30fcaa62f62ae806430de41f2c1574a6b739bbc1892dfcd20e44b73154d51ccd",
+      "size_bytes": 1205
+    },
+    {
+      "kind": "artifact_hashes",
+      "path": "artifact-hashes.json",
+      "sha256": "c49bb449f6ecec9878805636354619d0d1c1ad42f58ed7496780a34ecaa46d24",
+      "size_bytes": 1307
+    }
+  ],
+  "candidate": {
+    "name": "coupled",
+    "ref": "coupled",
+    "starting_commit": "11f9d4e8559ec56fc818b9b9e72c2150e9560931"
+  },
+  "ending": {
+    "commit": null,
+    "diff_artifact": "patch.diff",
+    "tree": "89bf7d166709cebff98c18d8cab3098150668f68"
+  },
+  "evaluator": {
+    "observed_sha256_after_run": "618a9aba91cf9f24e6bde4c8368e46f5256ed4e8a5f56e75435649aa83b33f50",
+    "test_pack_sha256": "618a9aba91cf9f24e6bde4c8368e46f5256ed4e8a5f56e75435649aa83b33f50"
+  },
+  "finished_at": "2026-09-27T12:31:49Z",
+  "limits": {
+    "max_attempts": 4,
+    "max_output_bytes": 1000000,
+    "wall_seconds": 600
+  },
+  "measurements": {
+    "attempts": 1,
+    "boundary_violations": [],
+    "changed_files": 7,
+    "duration_seconds": 0.795,
+    "human_interventions": [],
+    "lines_added": 558,
+    "lines_deleted": 23,
+    "output_bytes": 198
+  },
+  "outcome": "completed",
+  "outcome_detail": null,
+  "run_id": "20260927T123119Z-coupled-partial-refund",
+  "scenario": {
+    "id": "partial-refund",
+    "sha256": "151ddf1d45b76408b1026394139bcf5b6102a0d9bd1bb5576a2af2036dcfed9f"
+  },
+  "schema_version": 1,
+  "started_at": "2026-09-27T12:31:19Z",
+  "tests": {
+    "protected": {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        ".futurefork-evaluator/partial_refund"
+      ],
+      "errors": 0,
+      "failed": 0,
+      "passed": 34,
+      "results_artifact": "test-results.json",
+      "returncode": 0,
+      "skipped": 0,
+      "state": "passed"
+    },
+    "regression": {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "errors": 0,
+      "failed": 0,
+      "passed": 70,
+      "results_artifact": "test-results.json",
+      "returncode": 0,
+      "skipped": 0,
+      "state": "passed"
+    }
+  },
+  "toolchain": {
+    "git": "2.39.5 (Apple Git-154)",
+    "python": "3.14.7"
+  }
+}

@@ -1,0 +1,159 @@
+{
+  "evaluated_at": "2026-09-27",
+  "evaluated_on": "snapshot copy of the worktree (oracle never mounted in the Bob worktree)",
+  "evaluator": {
+    "pack": "partial-refund",
+    "test_pack_sha256_expected": "618a9aba91cf9f24e6bde4c8368e46f5256ed4e8a5f56e75435649aa83b33f50",
+    "test_pack_sha256_after_run": "618a9aba91cf9f24e6bde4c8368e46f5256ed4e8a5f56e75435649aa83b33f50",
+    "hash_match": true
+  },
+  "regression": {
+    "command": "python -m pytest -q tests",
+    "result": "68 passed"
+  },
+  "protected": {
+    "command": "python -m pytest -q .futurefork-evaluator/partial_refund",
+    "passed": 34,
+    "failed": 0,
+    "total": 34,
+    "tests": [
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_existing_full_refund_remains_compatible",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_refund_one_discounted_item_returns_price_minus_its_share",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_ineligible_line_carries_no_discount",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_orders_without_a_coupon_refund_full_unit_prices",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_remainder_cents_go_to_largest_remainders_then_earlier_lines",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_same_remainder_allocation_when_items_are_refunded_one_by_one",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_units_of_one_line_use_cumulative_floor_split",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_unit_split_depends_on_units_already_refunded_not_on_operation_size",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_full_refund_endpoint_refunds_only_what_remains",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_refund_ids_share_one_sequence_across_both_endpoints",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_zero_total_order_refunds_zero_without_error",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_multi_item_operation_sums_line_amounts",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_refund_uses_pricing_recorded_at_checkout_not_todays_coupon",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items0-SAVE25-one-unit-at-a-time]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items0-SAVE25-two-big-operations]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items0-SAVE25-whole-lines-reverse]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items1-SAVE10-one-unit-at-a-time]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items1-SAVE10-two-big-operations]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items1-SAVE10-whole-lines-reverse]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items2-SAVE25-one-unit-at-a-time]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items2-SAVE25-two-big-operations]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items2-SAVE25-whole-lines-reverse]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items3-FULLRIDE-one-unit-at-a-time]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items3-FULLRIDE-two-big-operations]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items3-FULLRIDE-whole-lines-reverse]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items4-None-one-unit-at-a-time]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items4-None-two-big-operations]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_every_operation_matches_the_rules_and_totals_equal_captured[items4-None-whole-lines-reverse]",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_identical_orders_refund_identically",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_unknown_order_is_404",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_invalid_refund_items_are_422",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_refund_beyond_remaining_units_is_409",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_item_endpoint_on_order_refunded_in_full_is_409",
+        "passed"
+      ],
+      [
+        ".futurefork-evaluator.partial_refund.test_partial_refund::test_partial_refunds_of_one_line_cannot_exceed_its_quantity_across_operations",
+        "passed"
+      ]
+    ]
+  },
+  "outcome": "completed"
+}

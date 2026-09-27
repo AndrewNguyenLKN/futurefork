@@ -1,0 +1,42 @@
+{
+  "changed-paths.json": {
+    "sha256": "7f2eb574b1833f77290a6795241630559a659b273ace2f9efabe12b2fc58ec60",
+    "size_bytes": 480
+  },
+  "events.jsonl": {
+    "sha256": "a2d9212f028e339e0766a746ea76a6fb41c457c1cb5638a560e15454b9701aa7",
+    "size_bytes": 641
+  },
+  "measurements.json": {
+    "sha256": "30f055a407b70659527457eeb4877580d5bdb0668502feab8e2cff09b86619e9",
+    "size_bytes": 197
+  },
+  "patch.diff": {
+    "sha256": "936e7c80e24c6c3633e7205e9f85a82cd5649a99f5c88056647c079d6769af4c",
+    "size_bytes": 32029
+  },
+  "scenario.yaml": {
+    "sha256": "151ddf1d45b76408b1026394139bcf5b6102a0d9bd1bb5576a2af2036dcfed9f",
+    "size_bytes": 3488
+  },
+  "state.json": {
+    "sha256": "30fcaa62f62ae806430de41f2c1574a6b739bbc1892dfcd20e44b73154d51ccd",
+    "size_bytes": 1205
+  },
+  "stderr.log": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size_bytes": 0
+  },
+  "stdout.log": {
+    "sha256": "697b1500284c7f9f714d15fffdb65b4694c3e70c9f9a000b79b0f47afa1607a5",
+    "size_bytes": 281
+  },
+  "task-packet.md": {
+    "sha256": "395377e70c362602590d19a3bb1d24f4ffb990f6d32a08555f80a83a3fb6f11f",
+    "size_bytes": 3798
+  },
+  "test-results.json": {
+    "sha256": "9aea86e9a82c7bcc889015184bb8a0a239f1d9923df4471ce65e7a1460edc3de",
+    "size_bytes": 540
+  }
+}

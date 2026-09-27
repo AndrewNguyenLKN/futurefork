@@ -1,0 +1,30 @@
+{
+  "worktree": "/private/tmp/futurefork-p03-modular",
+  "start_commit": "f9e3ecda1e4a8452678578226b2553a6ebddf536",
+  "changed_paths": [
+    {
+      "path": "src/pocketcart/checkout.py",
+      "sha256": "46f461621644c2904a612a60c701d904fae69afef9adb6736c96bd817e32a92d"
+    },
+    {
+      "path": "src/pocketcart/refunds.py",
+      "sha256": "230c4802aff31074a3e4d469d6f6a7ce80a73cd632b898f3936ab3fe8f655e49"
+    },
+    {
+      "path": "src/pocketcart/service.py",
+      "sha256": "d604dacf8d9cccd3e15f9abc5691b99e164a51b8bbbd1f865bfadb4dd7898bb4"
+    },
+    {
+      "path": "src/pocketcart/store.py",
+      "sha256": "9e9a94f7ecd2b5252268787151e73bc0363648a2fdacab845217ce98acb9139f"
+    },
+    {
+      "path": "src/pocketcart/wsgi.py",
+      "sha256": "035d5f180715d5352f8825ddffa0af59ee89ee8783a3fc035e965e65fa92889a"
+    },
+    {
+      "path": "tests/test_partial_refund.py",
+      "sha256": "bb0a4c9506db1466391ed3fdb3e4390382b0df7a7b7a8d6019b6fa4a3b95ab99"
+    }
+  ]
+}

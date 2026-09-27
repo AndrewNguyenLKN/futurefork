@@ -1,0 +1,656 @@
+{
+  "$defs": {
+    "Agent": {
+      "additionalProperties": false,
+      "properties": {
+        "human_triggered": {
+          "title": "Human Triggered",
+          "type": "boolean"
+        },
+        "provider": {
+          "const": "IBM Bob",
+          "title": "Provider",
+          "type": "string"
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9._-]{8,128}$(?!\\n)",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Task Id"
+        }
+      },
+      "required": [
+        "provider",
+        "human_triggered"
+      ],
+      "title": "Agent",
+      "type": "object"
+    },
+    "Artifact": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ArtifactKind"
+        },
+        "path": {
+          "description": "Relative POSIX path inside the run directory; no '..', no absolute paths.",
+          "maxLength": 240,
+          "pattern": "^(?!\\.{1,2}(?:/|$))[A-Za-z0-9._-]+(?:/(?!\\.{1,2}(?:/|$))[A-Za-z0-9._-]+)*$(?!\\n)",
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "description": "Lowercase hex SHA-256.",
+          "pattern": "^[0-9a-f]{64}$(?!\\n)",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "kind",
+        "sha256",
+        "size_bytes"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
+    "ArtifactKind": {
+      "enum": [
+        "scenario",
+        "task_packet",
+        "patch",
+        "changed_paths",
+        "test_results",
+        "measurements",
+        "events",
+        "stdout_log",
+        "stderr_log",
+        "artifact_hashes",
+        "junit_xml",
+        "notes",
+        "other"
+      ],
+      "title": "ArtifactKind",
+      "type": "string"
+    },
+    "Candidate": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$(?!\\n)",
+          "title": "Name",
+          "type": "string"
+        },
+        "ref": {
+          "description": "Git ref name, e.g. 'modular'. Never a commit id.",
+          "pattern": "^(?![0-9a-f]{40}(?:[0-9a-f]{24})?$)(?![-/.])(?!.*(?:\\.\\.|//|\\.lock(?:/|$)))[A-Za-z0-9._/-]{1,200}(?<![/.])$(?!\\n)",
+          "title": "Ref",
+          "type": "string"
+        },
+        "starting_commit": {
+          "description": "Full lowercase 40-hex Git object id.",
+          "pattern": "^[0-9a-f]{40}$(?!\\n)",
+          "title": "Starting Commit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "ref",
+        "starting_commit"
+      ],
+      "title": "Candidate",
+      "type": "object"
+    },
+    "Ending": {
+      "additionalProperties": false,
+      "properties": {
+        "commit": {
+          "anyOf": [
+            {
+              "description": "Full lowercase 40-hex Git object id.",
+              "pattern": "^[0-9a-f]{40}$(?!\\n)",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Commit"
+        },
+        "diff_artifact": {
+          "anyOf": [
+            {
+              "description": "Relative POSIX path inside the run directory; no '..', no absolute paths.",
+              "maxLength": 240,
+              "pattern": "^(?!\\.{1,2}(?:/|$))[A-Za-z0-9._-]+(?:/(?!\\.{1,2}(?:/|$))[A-Za-z0-9._-]+)*$(?!\\n)",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Diff Artifact"
+        },
+        "tree": {
+          "anyOf": [
+            {
+              "description": "Full lowercase 40-hex Git object id.",
+              "pattern": "^[0-9a-f]{40}$(?!\\n)",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tree"
+        }
+      },
+      "title": "Ending",
+      "type": "object"
+    },
+    "Evaluator": {
+      "additionalProperties": false,
+      "properties": {
+        "observed_sha256_after_run": {
+          "anyOf": [
+            {
+              "description": "Lowercase hex SHA-256.",
+              "pattern": "^[0-9a-f]{64}$(?!\\n)",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pack hash re-computed after evaluation; None if it was not evaluated.",
+          "title": "Observed Sha256 After Run"
+        },
+        "test_pack_sha256": {
+          "description": "Frozen protected-pack hash from PACKS.json.",
+          "pattern": "^[0-9a-f]{64}$(?!\\n)",
+          "title": "Test Pack Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "test_pack_sha256"
+      ],
+      "title": "Evaluator",
+      "type": "object"
+    },
+    "Event": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "description": "Relative POSIX path inside the run directory; no '..', no absolute paths.",
+              "maxLength": 240,
+              "pattern": "^(?!\\.{1,2}(?:/|$))[A-Za-z0-9._-]+(?:/(?!\\.{1,2}(?:/|$))[A-Za-z0-9._-]+)*$(?!\\n)",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence"
+        },
+        "provenance": {
+          "description": "observed: seen by the runner/evaluator; reported: an operator statement not verified.",
+          "enum": [
+            "observed",
+            "reported"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "provenance"
+      ],
+      "title": "Event",
+      "type": "object"
+    },
+    "Limits": {
+      "additionalProperties": false,
+      "properties": {
+        "max_attempts": {
+          "exclusiveMinimum": 0,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "max_output_bytes": {
+          "exclusiveMinimum": 0,
+          "title": "Max Output Bytes",
+          "type": "integer"
+        },
+        "wall_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Wall Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "wall_seconds",
+        "max_attempts",
+        "max_output_bytes"
+      ],
+      "title": "Limits",
+      "type": "object"
+    },
+    "Measurements": {
+      "additionalProperties": false,
+      "description": "Raw observations only. There is deliberately no score field.",
+      "properties": {
+        "attempts": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempts"
+        },
+        "boundary_violations": {
+          "items": {
+            "$ref": "#/$defs/Event"
+          },
+          "title": "Boundary Violations",
+          "type": "array"
+        },
+        "changed_files": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Changed Files"
+        },
+        "duration_seconds": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Seconds"
+        },
+        "human_interventions": {
+          "items": {
+            "$ref": "#/$defs/Event"
+          },
+          "title": "Human Interventions",
+          "type": "array"
+        },
+        "lines_added": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lines Added"
+        },
+        "lines_deleted": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lines Deleted"
+        },
+        "output_bytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Bytes"
+        }
+      },
+      "title": "Measurements",
+      "type": "object"
+    },
+    "Outcome": {
+      "description": "Canonical failure taxonomy (docs/ARCHITECTURE.md; decision D014).",
+      "enum": [
+        "candidate_invalid",
+        "setup_failed",
+        "budget_exhausted",
+        "regression_failed",
+        "acceptance_failed",
+        "oracle_tampered",
+        "runner_error",
+        "completed"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "ScenarioRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$(?!\\n)",
+          "title": "Id",
+          "type": "string"
+        },
+        "sha256": {
+          "description": "SHA-256 of the exact scenario YAML bytes.",
+          "pattern": "^[0-9a-f]{64}$(?!\\n)",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "title": "ScenarioRef",
+      "type": "object"
+    },
+    "TestRun": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "anyOf": [
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Command"
+        },
+        "errors": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Errors"
+        },
+        "failed": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failed"
+        },
+        "passed": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Passed"
+        },
+        "results_artifact": {
+          "anyOf": [
+            {
+              "description": "Relative POSIX path inside the run directory; no '..', no absolute paths.",
+              "maxLength": 240,
+              "pattern": "^(?!\\.{1,2}(?:/|$))[A-Za-z0-9._-]+(?:/(?!\\.{1,2}(?:/|$))[A-Za-z0-9._-]+)*$(?!\\n)",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Results Artifact"
+        },
+        "returncode": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Returncode"
+        },
+        "skipped": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Skipped"
+        },
+        "state": {
+          "$ref": "#/$defs/TestState"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "title": "TestRun",
+      "type": "object"
+    },
+    "TestState": {
+      "enum": [
+        "passed",
+        "failed",
+        "error",
+        "not_run"
+      ],
+      "title": "TestState",
+      "type": "string"
+    },
+    "Tests": {
+      "additionalProperties": false,
+      "properties": {
+        "protected": {
+          "$ref": "#/$defs/TestRun"
+        },
+        "regression": {
+          "$ref": "#/$defs/TestRun"
+        }
+      },
+      "required": [
+        "regression",
+        "protected"
+      ],
+      "title": "Tests",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agent": {
+      "$ref": "#/$defs/Agent"
+    },
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/Artifact"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "candidate": {
+      "$ref": "#/$defs/Candidate"
+    },
+    "ending": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ending"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "evaluator": {
+      "$ref": "#/$defs/Evaluator"
+    },
+    "finished_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Finished At"
+    },
+    "limits": {
+      "$ref": "#/$defs/Limits"
+    },
+    "measurements": {
+      "$ref": "#/$defs/Measurements"
+    },
+    "outcome": {
+      "$ref": "#/$defs/Outcome"
+    },
+    "outcome_detail": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Outcome Detail"
+    },
+    "run_id": {
+      "description": "<UTC start YYYYMMDDTHHMMSSZ>-<candidate>-<scenario>",
+      "pattern": "^\\d{8}T\\d{6}Z-[a-z][a-z0-9]*(?:-[a-z0-9]+)*$(?!\\n)",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "scenario": {
+      "$ref": "#/$defs/ScenarioRef"
+    },
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "tests": {
+      "$ref": "#/$defs/Tests"
+    },
+    "toolchain": {
+      "description": "Allowlisted tool versions only; never environment dumps.",
+      "patternProperties": {
+        "^[a-z][a-z0-9_.-]{0,40}$(?!\\n)": {
+          "maxLength": 200,
+          "type": "string"
+        }
+      },
+      "title": "Toolchain",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "candidate",
+    "scenario",
+    "evaluator",
+    "agent",
+    "limits",
+    "started_at",
+    "outcome",
+    "tests",
+    "measurements",
+    "artifacts"
+  ],
+  "title": "RunManifest",
+  "type": "object"
+}

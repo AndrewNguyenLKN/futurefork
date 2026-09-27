@@ -44,7 +44,7 @@ For every candidate × scenario run:
 - Attempt/event history and failure classification.
 - Observed boundary or public-interface changes.
 - Duration and configured limits.
-- An explicit status: `completed`, `tests_failed`, `budget_exhausted`, `invalid`, or `runner_error`.
+- An explicit outcome from the canonical taxonomy in `docs/ARCHITECTURE.md` (`completed`, `acceptance_failed`, `regression_failed`, `budget_exhausted`, `oracle_tampered`, `candidate_invalid`, `setup_failed`, `runner_error`; decision D014).
 
 For a comparison:
 

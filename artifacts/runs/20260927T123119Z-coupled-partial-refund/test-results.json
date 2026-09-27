@@ -1,0 +1,35 @@
+{
+  "protected": {
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q",
+      ".futurefork-evaluator/partial_refund"
+    ],
+    "counts": {
+      "errors": 0,
+      "failed": 0,
+      "passed": 34,
+      "skipped": 0
+    },
+    "returncode": 0,
+    "timed_out": false
+  },
+  "regression": {
+    "command": [
+      "python",
+      "-m",
+      "pytest",
+      "-q"
+    ],
+    "counts": {
+      "errors": 0,
+      "failed": 0,
+      "passed": 70,
+      "skipped": 0
+    },
+    "returncode": 0,
+    "timed_out": false
+  }
+}
