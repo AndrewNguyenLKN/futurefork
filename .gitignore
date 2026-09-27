@@ -14,6 +14,9 @@ dist/
 .codex-build/
 .codex-finalizer/
 
+# Submission media stays local; Lablab hosts the uploaded copies.
+assets/submission/
+
 # Secrets and local environment
 .env
 .env.*
