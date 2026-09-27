@@ -25,7 +25,7 @@ Regenerate/update this file after any of the items below change.
 | Asset | Location | What is actually known |
 |---|---|---|
 | Cover image | `assets/submission/futurefork-cover.png` | Visually reviewed; exact title/tagline; 1672×941 PNG. |
-| Slide deck | `assets/submission/deck/FutureFork-hackathon-deck-final.pptx` | Six-slide 16:9 deck, visually reviewed; package/layout validation passed with 0 findings and 0 warnings. |
+| Slide deck | `assets/submission/deck/FutureFork-hackathon-deck-with-speaker-notes.pptx` | Six-slide 16:9 deck with a complete narration script in every slide's Speaker Notes; package/layout validation passed with 0 findings and 0 warnings. |
 | MP4 demo | `assets/submission/video/FutureFork-demo.mp4` | 1920×1080 H.264 + AAC, 175.37 seconds (within the required 90–180 seconds); English narration; claims match the two real runs. |
 
 ## Missing — required before submission, not started here
