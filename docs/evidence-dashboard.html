@@ -57,7 +57,7 @@ footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; border-top: 1
 <body>
 <div class="wrap">
   <h1>FutureFork — partial-refund evidence</h1>
-  <p class="sub">Generated 2026-09-27 12:51 UTC by <code>scripts/build_dashboard.py</code> from real files under <code>artifacts/runs/</code> and <code>bob_sessions/</code>. Every number below links to the artifact it came from. Nothing here is computed live or fetched over the network — open this file directly.</p>
+  <p class="sub">Generated 2026-09-27 14:09 UTC by <code>scripts/build_dashboard.py</code> from real files under <code>artifacts/runs/</code> and <code>bob_sessions/</code>. Every number below links to the artifact it came from. Nothing here is computed live or fetched over the network — open this file directly.</p>
 
   <div class="banner">
     <b>Scope of this evidence: 1 of 3 frozen scenarios × 2 of 2 candidates.</b>
@@ -93,13 +93,13 @@ footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; border-top: 1
       <p class="mono" style="color:var(--muted);font-size:12px;margin:12px 0 0">Changed: <code>src/pocketcart/checkout.py</code>, <code>src/pocketcart/discounts.py</code>, <code>src/pocketcart/refunds.py</code>, <code>src/pocketcart/service.py</code>, <code>src/pocketcart/store.py</code>, <code>src/pocketcart/wsgi.py</code>, <code>tests/test_partial_refund.py</code></p>
       
       <div class="links">
-        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/patch.diff">patch.diff</a>
-        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/test-results.json">test-results.json</a>
-        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/changed-paths.json">changed-paths.json</a>
-        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/events.jsonl">events.jsonl</a>
-        <a href="../artifacts/runs/20260927T123119Z-coupled-partial-refund/manifest.json">manifest.json</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/20260927T123119Z-coupled-partial-refund/patch.diff">patch.diff</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/20260927T123119Z-coupled-partial-refund/test-results.json">test-results.json</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/20260927T123119Z-coupled-partial-refund/changed-paths.json">changed-paths.json</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/20260927T123119Z-coupled-partial-refund/events.jsonl">events.jsonl</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/20260927T123119Z-coupled-partial-refund/manifest.json">manifest.json</a>
         
-        <a href="../bob_sessions/futurefork_task03_p08_coupled_partial_refund_summary.png">Bob session screenshot</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/bob_sessions/futurefork_task03_p08_coupled_partial_refund_summary.png">Bob session screenshot</a>
       </div>
     </div>
     
@@ -120,13 +120,13 @@ footer { margin-top: 48px; color: var(--muted); font-size: 12.5px; border-top: 1
       <p class="mono" style="color:var(--muted);font-size:12px;margin:12px 0 0">Changed: <code>src/pocketcart/checkout.py</code>, <code>src/pocketcart/refunds.py</code>, <code>src/pocketcart/service.py</code>, <code>src/pocketcart/store.py</code>, <code>src/pocketcart/wsgi.py</code>, <code>tests/test_partial_refund.py</code></p>
       <div class="banner"><b>Disclosed deviations for this run</b><ul class="caveats"><li><strong>Oracle-informed feedback.</strong> After the first oracle run, Bob was told the response status must be `refunded`. The value is in the frozen public interface, but the trigger was a protected-test failure. If the same treatment is not given to every candidate × scenario run, the comparison is unequal. Decide one policy (feedback allowed, counted as an attempt, for all runs; or no feedback) before running `coupled`.</li><li><strong>Lost attempt-1 patch.</strong> A cleanup bug deleted the worktree (see incident). The final implementation is Bob&#x27;s re-application from its own task history, not the original attempt-1 output, so attempt 1 cannot be inspected. The 33/34 first result is reported only.</li><li><strong>Bob could not run tests.</strong> Bob&#x27;s Python has no pytest, so its development tests were run by the operator from outside the worktree. Bob still wrote them. Give the next run the same arrangement or fix the environment for both.</li><li><strong>Boundary probing.</strong> Bob reportedly inspected system Python paths (outside the workspace). Reportedly no FutureFork repo or pack access; not verifiable from artifacts.</li><li><strong>Packet fidelity.</strong> The task packet&#x27;s illustrative response used `&quot;order_id&quot;: &quot;ord_0001&quot;`, but real ids are `order_0001`. It did not affect the result but the packet was not generated from the frozen YAML byte for byte.</li><li><strong>Unmount bug.</strong> Do not reuse the earlier unmount snippet. Evaluation now happens on a snapshot copy; the oracle is never mounted in Bob&#x27;s worktree.</li></ul></div>
       <div class="links">
-        <a href="../artifacts/runs/p03-manual-modular-partial-refund/patch.diff">patch.diff</a>
-        <a href="../artifacts/runs/p03-manual-modular-partial-refund/test-results.json">test-results.json</a>
-        <a href="../artifacts/runs/p03-manual-modular-partial-refund/changed-paths.json">changed-paths.json</a>
-        <a href="../artifacts/runs/p03-manual-modular-partial-refund/events.jsonl">events.jsonl</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/p03-manual-modular-partial-refund/patch.diff">patch.diff</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/p03-manual-modular-partial-refund/test-results.json">test-results.json</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/p03-manual-modular-partial-refund/changed-paths.json">changed-paths.json</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/p03-manual-modular-partial-refund/events.jsonl">events.jsonl</a>
         
-        <a href="../artifacts/runs/p03-manual-modular-partial-refund/human-notes.md">human-notes.md</a>
-        <a href="../bob_sessions/futurefork_task02_p03_modular_partial_refund_summary.png">Bob session screenshot</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/artifacts/runs/p03-manual-modular-partial-refund/human-notes.md">human-notes.md</a>
+        <a href="https://github.com/AndrewNguyenLKN/futurefork/blob/main/bob_sessions/futurefork_task02_p03_modular_partial_refund_summary.png">Bob session screenshot</a>
       </div>
     </div>
   </div>

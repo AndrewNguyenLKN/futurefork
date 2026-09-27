@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT))
 from futurefork.manifest import load_manifest  # noqa: E402
 
 OUT = ROOT / "docs" / "evidence-dashboard.html"
+GITHUB_BLOB_BASE = "https://github.com/AndrewNguyenLKN/futurefork/blob/main"
 
 MODULAR_RUN = ROOT / "artifacts" / "runs" / "p03-manual-modular-partial-refund"
 COUPLED_RUN = ROOT / "artifacts" / "runs" / "20260927T123119Z-coupled-partial-refund"
@@ -53,8 +54,9 @@ def build_modular_record() -> dict:
         "lines_added": None, "lines_deleted": None, "duration_seconds": None,
         "boundary_violations": [], "human_interventions_disclosed": len(caveats),
         "caveats": caveats,
-        "run_dir_rel": "../artifacts/runs/p03-manual-modular-partial-refund",
-        "screenshot_rel": "../bob_sessions/futurefork_task02_p03_modular_partial_refund_summary.png",
+        "run_dir_rel": f"{GITHUB_BLOB_BASE}/artifacts/runs/p03-manual-modular-partial-refund",
+        "run_dir_path": MODULAR_RUN,
+        "screenshot_rel": f"{GITHUB_BLOB_BASE}/bob_sessions/futurefork_task02_p03_modular_partial_refund_summary.png",
         "evaluated_on": results["evaluated_on"],
     }
 
@@ -78,8 +80,9 @@ def build_coupled_record() -> dict:
         "boundary_violations": [e.description for e in m.measurements.boundary_violations],
         "human_interventions_disclosed": len(m.measurements.human_interventions),
         "caveats": [],
-        "run_dir_rel": "../artifacts/runs/20260927T123119Z-coupled-partial-refund",
-        "screenshot_rel": "../bob_sessions/futurefork_task03_p08_coupled_partial_refund_summary.png",
+        "run_dir_rel": f"{GITHUB_BLOB_BASE}/artifacts/runs/20260927T123119Z-coupled-partial-refund",
+        "run_dir_path": COUPLED_RUN,
+        "screenshot_rel": f"{GITHUB_BLOB_BASE}/bob_sessions/futurefork_task03_p08_coupled_partial_refund_summary.png",
         "evaluated_on": "isolated detached worktree, evaluated in place by `futurefork finalize`",
     }
 
@@ -183,8 +186,8 @@ def render_card(rec: dict) -> str:
         <a href="{rec["run_dir_rel"]}/test-results.json">test-results.json</a>
         <a href="{rec["run_dir_rel"]}/changed-paths.json">changed-paths.json</a>
         <a href="{rec["run_dir_rel"]}/events.jsonl">events.jsonl</a>
-        {'<a href="' + rec["run_dir_rel"] + '/manifest.json">manifest.json</a>' if (ROOT / rec["run_dir_rel"].replace("../", "") / "manifest.json").exists() else ''}
-        {'<a href="' + rec["run_dir_rel"] + '/human-notes.md">human-notes.md</a>' if (ROOT / rec["run_dir_rel"].replace("../", "") / "human-notes.md").exists() else ''}
+        {'<a href="' + rec["run_dir_rel"] + '/manifest.json">manifest.json</a>' if (rec["run_dir_path"] / "manifest.json").exists() else ''}
+        {'<a href="' + rec["run_dir_rel"] + '/human-notes.md">human-notes.md</a>' if (rec["run_dir_path"] / "human-notes.md").exists() else ''}
         <a href="{rec["screenshot_rel"]}">Bob session screenshot</a>
       </div>
     </div>"""
